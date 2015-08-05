@@ -6,6 +6,7 @@ import sqlite3
 from time import ctime, tzset, mktime
 import feedparser
 from flask.ext.script import Manager
+from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 manager = Manager(app)
@@ -69,7 +70,8 @@ def fetch_feeds():
 
         for entry in d.entries:
             altcur = db.cursor()
-            altcur.execute("select rowid from entries where link = ?", [ entry.link ])
+            altcur.execute("select rowid from entries where link = ? and feed_id = ?",
+                    [ entry.link, row["id"] ])
 
             if altcur.fetchone() == None:
                 try:
