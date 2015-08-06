@@ -51,16 +51,18 @@ class Entry(db.Model):
 
 class Feed(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    owner_id = db.Column(db.Integer)
-    folder_id = db.Column(db.Integer)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User", backref = db.backref("feeds", lazy = "dynamic"))
+    folder_id = db.Column(db.Integer, db.ForeignKey("folder.id"))
+    folder = db.relationship("Folder", backref = db.backref("feeds", lazy = "dynamic"))
     name = db.Column(db.Text)
     icon = db.Column(db.Text)
     link = db.Column(db.Text)
     url = db.Column(db.Text)
 
-    def __init__(self, owner_id, folder_id, name, icon, link, url):
-        self.owner_id = owner_id
-        self.folder_id = folder_id
+    def __init__(self, owner, folder, name, icon, link, url):
+        self.owner = owner
+        self.folder = folder
         self.name = name
         self.icon = icon
         self.link = link
@@ -83,6 +85,33 @@ class Feed(db.Model):
 
         if commit:
             db.session.commit()
+
+class Folder(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    owner_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    owner = db.relationship("User", backref = db.backref("folders", lazy = "dynamic"))
+    name = db.Column(db.Text)
+
+    def __init__(self, owner, name):
+        self.owner = owner
+        self.name = name
+
+    def __repr__():
+        return "<Folder {0} ({1})>".format(self.id, self.name)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.Text, unique = True)
+    password = db.Column(db.Text)
+    admin = db.Column(db.Integer)
+
+    def __init__(self, name, password, admin):
+        self.name = name
+        self.password = password
+        self.admin = admin
+
+    def __repr__():
+        return "<User {0} ({1})>".format(self.id, self.name)
 
 @app.route("/")
 def root():
