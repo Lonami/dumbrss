@@ -76,7 +76,7 @@ class Feed(db.Model):
         for entry in d.entries:
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
-                    entry.author = "&lt;none&gt;"
+                    entry.author = None
                 date = int(mktime(entry.published_parsed))
                 dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
                 db.session.add(dbentry)
@@ -89,7 +89,10 @@ def root():
     asdf = Entry.query.order_by(Entry.date.desc()).all()
     hjkl = ""
     for stuff in asdf:
-        hjkl += str(stuff.feed.name) + ": <a href=\"" + stuff.link + "\">" + stuff.title + "</a> by " + stuff.author + " on " + ctime(stuff.date) + "<br />"
+        hjkl += str(stuff.feed.name) + ": <a href=\"" + stuff.link + "\">" + stuff.title + "</a>"
+        if stuff.author != None:
+            hjkl += " by " + stuff.author
+        hjkl += " on " + ctime(stuff.date) + "<br />"
     return hjkl
 
 def fetch_feeds():
