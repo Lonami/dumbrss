@@ -1,103 +1,138 @@
 #!/usr/bin/env python3
 
 import os
-from flask import Flask, g
-import sqlite3
+from flask import Flask
 from time import ctime, tzset, mktime
 import feedparser
 from flask.ext.script import Manager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-manager = Manager(app)
 
 # Default config
 app.config.update(dict(
-    DATABASE = os.path.join(app.root_path, "dumbrss.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(app.root_path, "dumbrss.db")
 ))
 if os.getenv("DRSS_CONFIG") == None:
     os.environ["DRSS_CONFIG"] = os.path.join(app.root_path, "config.py")
 app.config.from_envvar("DRSS_CONFIG", silent = True)
 
+db = SQLAlchemy(app)
+manager = Manager(app)
+
 # Set the timezone to UTC for consistent time stamps
 os.environ["TZ"] = "UTC"
 tzset()
 
-def connect_db(autocommit = False):
-    if not(autocommit):
-        db = sqlite3.connect(app.config["DATABASE"])
-    else:
-        db = sqlite3.connect(app.config["DATABASE"], isolation_level = None)
-    db.row_factory = sqlite3.Row
-    return db
+class Entry(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    feed_id = db.Column(db.Integer, db.ForeignKey("feed.id"))
+    feed = db.relationship("Feed", backref = db.backref("entries", lazy = "dynamic"))
+    link = db.Column(db.Text)
+    title = db.Column(db.Text)
+    summary = db.Column(db.Text)
+    author = db.Column(db.Text)
+    date = db.Column(db.Integer)
+    read = db.Column(db.Integer)
+    starred = db.Column(db.Integer)
 
-def get_db(autocommit = False):
-    if not(hasattr(g, "sqlite_db")):
-        g.sqlite_db = connect_db(autocommit)
-    return g.sqlite_db
+    def __init__(self, feed, link, title, summary, author, date):
+        self.feed = feed
+        self.link = link
+        self.title = title
+        self.summary = summary
+        self.author = author
+        self.date = date
+        self.read = 0
+        self.starred = 0
 
-@app.teardown_appcontext
-def close_db_connection(exception):
-    if hasattr(g, "sqlite_db"):
-        g.sqlite_db.close()
+    def __repr__(self):
+        return "<Entry {0} ({1})>".format(self.id, self.title)
+
+class Feed(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    owner_id = db.Column(db.Integer)
+    folder_id = db.Column(db.Integer)
+    name = db.Column(db.Text)
+    icon = db.Column(db.Text)
+    link = db.Column(db.Text)
+    url = db.Column(db.Text)
+
+    def __init__(self, owner_id, folder_id, name, icon, link, url):
+        self.owner_id = owner_id
+        self.folder_id = folder_id
+        self.name = name
+        self.icon = icon
+        self.link = link
+        self.url = url
+
+    def __repr__(self):
+        return "<Feed {0} ({1})>".format(self.id, self.name)
+
+    def fetch(self, commit = True):
+        app.logger.info("Fetching " + str(self))
+        d = feedparser.parse(self.url)
+
+        for entry in d.entries:
+            if self.entries.filter_by(link = entry.link).count() == 0:
+                if not(hasattr(entry, "author")):
+                    entry.author = "&lt;none&gt;"
+                date = int(mktime(entry.published_parsed))
+                dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
+                db.session.add(dbentry)
+
+        if commit:
+            db.session.commit()
 
 @app.route("/")
 def root():
-    db = get_db()
-    cur = db.cursor()
-    cur.execute("select link, title, author, date, feed_id from entries order by date desc")
-    asdf = cur.fetchall()
+    asdf = Entry.query.order_by(Entry.date.desc()).all()
     hjkl = ""
     for stuff in asdf:
-        cur.execute("select name from feeds where id = " + str(stuff["feed_id"]))
-        name = cur.fetchone()["name"]
-        hjkl += name + ": " + "<a href=\"" + stuff["link"] + "\">" + stuff["title"] + "</a> by " + stuff["author"] + " on " + ctime(stuff["date"]) + "<br />"
+        hjkl += str(stuff.feed.name) + ": <a href=\"" + stuff.link + "\">" + stuff.title + "</a> by " + stuff.author + " on " + ctime(stuff.date) + "<br />"
     return hjkl
 
-@app.route("/fetch")
 def fetch_feeds():
-    db = get_db(autocommit = True)
-    cur = db.cursor()
-    cur.execute("select id, url, name from feeds")
+    for feed in Feed.query.yield_per(1000):
+        feed.fetch(commit = False)
+    db.session.commit()
 
-    while 1:
-        row = cur.fetchone()
-        if row == None:
-            break
+def fetch_feed(id):
+    f = Feed.query.filter_by(id = id).first().fetch()
 
-        app.logger.info("Fetching feed " + row["name"] + " (" + row["url"] + ")")
-        d = feedparser.parse(row["url"])
-
-        for entry in d.entries:
-            altcur = db.cursor()
-            altcur.execute("select rowid from entries where link = ? and feed_id = ?",
-                    [ entry.link, row["id"] ])
-
-            if altcur.fetchone() == None:
-                try:
-                    author = entry.author
-                except AttributeError:
-                    author = "&lt;none&gt;"
-                date = int(mktime(entry.published_parsed))
-
-                db.execute("insert into entries"
-                        "(feed_id, title, link, author, summary, date, read, starred)"
-                        "values (?, ?, ?, ?, ?, ?, ?, ?)", [
-                            row["id"],
-                            entry.title,
-                            entry.link,
-                            author,
-                            entry.summary,
-                            date,
-                            0,
-                            0
-                        ])
+@app.route("/fetch")
+@app.route("/fetch/<int:id>")
+def webfetch(id = None):
+    if id == None:
+        fetch_feeds()
+    else:
+        try:
+            fetch_feed(id)
+        except AttributeError:
+            return "No feed with ID " + str(id)
     return ""
 
-@manager.command
-def fetch():
+@manager.option("-f", "--feed", dest = "id", default = None)
+def fetch(id):
     "Fetch feed updates"
-    fetch_feeds()
+    if id == None:
+        fetch_feeds()
+    else:
+        try:
+            id = int(id)
+        except ValueError:
+            print("Feed ID must be an integer")
+            return
+
+        try:
+            fetch_feed(id)
+        except AttributeError:
+            print("No feed with ID", id)
+
+@manager.command
+def initdb():
+    "Initialize the database"
+    db.create_all()
 
 if __name__ == "__main__":
     manager.run()
