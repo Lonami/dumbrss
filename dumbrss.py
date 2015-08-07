@@ -5,7 +5,8 @@ import flask
 import time
 import feedparser
 import flask.ext.script as script
-import flask.ext.sqlalchemy as sqlalchemy
+import flask.ext.sqlalchemy as f_sqlalchemy
+import sqlalchemy
 import flask.ext.login as flask_login
 import flask_wtf
 import wtforms
@@ -26,7 +27,7 @@ if app.config["SECRET_KEY"] == None:
     f.write("SECRET_KEY = " + str(app.config["SECRET_KEY"]) + "\n")
     f.close()
 
-db = sqlalchemy.SQLAlchemy(app)
+db = f_sqlalchemy.SQLAlchemy(app)
 manager = script.Manager(app)
 login_manager = flask_login.LoginManager(app)
 
@@ -160,7 +161,8 @@ def logout():
 
 @login_manager.user_loader
 def load_user(username):
-    return User.query.filter_by(name = username).first()
+    return User.query.filter(sqlalchemy.func.lower(User.name) ==
+            sqlalchemy.func.lower(username)).first()
 
 def fetch_feeds():
     for feed in Feed.query.yield_per(1000):
