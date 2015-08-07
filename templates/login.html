@@ -1,0 +1,17 @@
+{% extends "main.html" %}
+{% block title %}Login{% endblock %}
+{% block body %}
+    {{ current_user.name }}
+    <form method="POST" action="/login">
+        {{ form.hidden_tag() }}
+        {% for field in form %}
+            {% if field.id == "csrf_token" %}
+            {% elif field.type == "BooleanField" %}
+                {{ field }}{{ field.label }}
+            {% else %}
+                {{ field(size = 20, placeholder = field.label.text) }}
+            {% endif %}
+        {% endfor %}
+        <input type="submit" value="Log in" class="button">
+    </form>
+{% endblock %}

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
 import os
-from flask import Flask
+import flask
+from flask import Flask, render_template
 from time import ctime, tzset, mktime
 import feedparser
 from flask.ext.script import Manager
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user
+from flask_wtf import Form
+from wtforms import StringField, PasswordField, BooleanField
+from wtforms.validators import DataRequired
 
 app = Flask(__name__)
 
@@ -25,6 +30,7 @@ if app.config["SECRET_KEY"] == None:
 
 db = SQLAlchemy(app)
 manager = Manager(app)
+login_manager = LoginManager(app)
 
 # Set the timezone to UTC for consistent time stamps
 os.environ["TZ"] = "UTC"
@@ -105,11 +111,14 @@ class Folder(db.Model):
     def __repr__():
         return "<Folder {0} ({1})>".format(self.id, self.name)
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.Text, unique = True)
     password = db.Column(db.Text)
     admin = db.Column(db.Integer)
+
+    def get_id(self):
+        return self.name
 
     def __init__(self, name, password, admin):
         self.name = name
@@ -118,6 +127,11 @@ class User(db.Model):
 
     def __repr__():
         return "<User {0} ({1})>".format(self.id, self.name)
+
+class LoginForm(Form):
+    username = StringField("Username", validators = [ DataRequired() ])
+    password = PasswordField("Password", validators = [ DataRequired() ])
+    remember = BooleanField("Remember me")
 
 @app.route("/")
 def root():
@@ -129,6 +143,25 @@ def root():
             hjkl += " by " + stuff.author
         hjkl += " on " + ctime(stuff.date) + "<br />"
     return hjkl
+
+@app.route("/login", methods = [ "GET", "POST" ])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = load_user(form.username.data)
+        login_user(user)
+        return str(user.id)
+    return render_template("login.html", form = form)
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return flask.redirect("/login")
+
+@login_manager.user_loader
+def load_user(username):
+    return User.query.filter_by(name = username).first()
 
 def fetch_feeds():
     for feed in Feed.query.yield_per(1000):
