@@ -114,6 +114,7 @@ class User(db.Model, flask_login.UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.Text, unique = True)
     password = db.Column(db.Text)
+    salt = db.Column(db.Binary)
     admin = db.Column(db.Integer)
 
     def get_id(self):
@@ -121,7 +122,8 @@ class User(db.Model, flask_login.UserMixin):
 
     def __init__(self, name, password, admin):
         self.name = name
-        self.password = password
+        self.salt = os.urandom(16)
+        self.password = flask_login.make_secure_token(password.encode(), self.salt)
         self.admin = admin
 
     def __repr__():
@@ -129,9 +131,28 @@ class User(db.Model, flask_login.UserMixin):
 
 class LoginForm(flask_wtf.Form):
     import wtforms.validators as v
-    username = wtforms.StringField("Username", validators = [ v.DataRequired() ])
-    password = wtforms.PasswordField("Password", validators = [ v.DataRequired() ])
+    username = wtforms.StringField("Username",
+            validators = [ v.DataRequired("Please enter your username") ])
+    password = wtforms.PasswordField("Password",
+            validators = [ v.DataRequired("Please enter your password") ])
     remember = wtforms.BooleanField("Remember me")
+    submit = wtforms.SubmitField("Log in")
+
+    def validate_username(self, field):
+        if load_user(field.data) == None:
+            raise wtforms.validators.StopValidation("Invalid username")
+
+    def validate_password(form, field):
+        user = load_user(form.username.data)
+        if user != None:
+            password = flask_login.make_secure_token(field.data.encode(), user.salt)
+            if password != user.password:
+                raise wtforms.validators.StopValidation("Invalid password")
+
+def flash_errors(form):
+    for field, errors in form.errors.items():
+        for error in errors:
+            flask.flash(error, "error")
 
 @app.route("/")
 def root():
@@ -150,7 +171,10 @@ def login():
     if form.validate_on_submit():
         user = load_user(form.username.data)
         flask_login.login_user(user)
-        return str(user.id)
+        flask.flash("Welcome, " + flask_login.current_user.name)
+        return flask.redirect("/")
+    else:
+        flash_errors(form)
     return flask.render_template("login.html", form = form)
 
 @app.route("/logout")
