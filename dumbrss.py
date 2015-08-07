@@ -17,6 +17,12 @@ if os.getenv("DRSS_CONFIG") == None:
     os.environ["DRSS_CONFIG"] = os.path.join(app.root_path, "config.py")
 app.config.from_envvar("DRSS_CONFIG", silent = True)
 
+if app.config["SECRET_KEY"] == None:
+    f = open(os.environ["DRSS_CONFIG"], "a")
+    app.config["SECRET_KEY"] = os.urandom(32)
+    f.write("SECRET_KEY = " + str(app.config["SECRET_KEY"]) + "\n")
+    f.close()
+
 db = SQLAlchemy(app)
 manager = Manager(app)
 
