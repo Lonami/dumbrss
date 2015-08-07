@@ -2,17 +2,15 @@
 
 import os
 import flask
-from flask import Flask, render_template
-from time import ctime, tzset, mktime
+import time
 import feedparser
-from flask.ext.script import Manager
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager, login_user, UserMixin, login_required, logout_user
-from flask_wtf import Form
-from wtforms import StringField, PasswordField, BooleanField
-from wtforms.validators import DataRequired
+import flask.ext.script as script
+import flask.ext.sqlalchemy as sqlalchemy
+import flask.ext.login as flask_login
+import flask_wtf
+import wtforms
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 # Default config
 app.config.update(dict(
@@ -28,13 +26,13 @@ if app.config["SECRET_KEY"] == None:
     f.write("SECRET_KEY = " + str(app.config["SECRET_KEY"]) + "\n")
     f.close()
 
-db = SQLAlchemy(app)
-manager = Manager(app)
-login_manager = LoginManager(app)
+db = sqlalchemy.SQLAlchemy(app)
+manager = script.Manager(app)
+login_manager = flask_login.LoginManager(app)
 
 # Set the timezone to UTC for consistent time stamps
 os.environ["TZ"] = "UTC"
-tzset()
+time.tzset()
 
 class Entry(db.Model):
     id = db.Column(db.Integer, primary_key = True)
@@ -91,7 +89,7 @@ class Feed(db.Model):
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
-                date = int(mktime(entry.published_parsed))
+                date = int(time.mktime(entry.published_parsed))
                 dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
                 db.session.add(dbentry)
 
@@ -111,7 +109,7 @@ class Folder(db.Model):
     def __repr__():
         return "<Folder {0} ({1})>".format(self.id, self.name)
 
-class User(db.Model, UserMixin):
+class User(db.Model, flask_login.UserMixin):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.Text, unique = True)
     password = db.Column(db.Text)
@@ -128,10 +126,11 @@ class User(db.Model, UserMixin):
     def __repr__():
         return "<User {0} ({1})>".format(self.id, self.name)
 
-class LoginForm(Form):
-    username = StringField("Username", validators = [ DataRequired() ])
-    password = PasswordField("Password", validators = [ DataRequired() ])
-    remember = BooleanField("Remember me")
+class LoginForm(flask_wtf.Form):
+    import wtforms.validators as v
+    username = wtforms.StringField("Username", validators = [ v.DataRequired() ])
+    password = wtforms.PasswordField("Password", validators = [ v.DataRequired() ])
+    remember = wtforms.BooleanField("Remember me")
 
 @app.route("/")
 def root():
@@ -141,7 +140,7 @@ def root():
         hjkl += str(stuff.feed.name) + ": <a href=\"" + stuff.link + "\">" + stuff.title + "</a>"
         if stuff.author != None:
             hjkl += " by " + stuff.author
-        hjkl += " on " + ctime(stuff.date) + "<br />"
+        hjkl += " on " + time.ctime(stuff.date) + "<br />"
     return hjkl
 
 @app.route("/login", methods = [ "GET", "POST" ])
@@ -149,14 +148,14 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = load_user(form.username.data)
-        login_user(user)
+        flask_login.login_user(user)
         return str(user.id)
-    return render_template("login.html", form = form)
+    return flask.render_template("login.html", form = form)
 
 @app.route("/logout")
-@login_required
+@flask_login.login_required
 def logout():
-    logout_user()
+    flask_login.logout_user()
     return flask.redirect("/login")
 
 @login_manager.user_loader
