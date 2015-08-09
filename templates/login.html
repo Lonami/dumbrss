@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 {% block title %}Login{% endblock %}
 {% block body %}
-    <form method="POST" action="/login">
+    <form method="POST">
         {{ form.hidden_tag() }}
         <ul>
             {% for field in form %}

@@ -10,6 +10,7 @@ import sqlalchemy
 import flask.ext.login as flask_login
 import flask_wtf
 import wtforms
+import urllib.parse as urlparse
 
 app = flask.Flask(__name__)
 
@@ -29,7 +30,9 @@ if app.config["SECRET_KEY"] == None:
 
 db = f_sqlalchemy.SQLAlchemy(app)
 manager = script.Manager(app)
+
 login_manager = flask_login.LoginManager(app)
+login_manager.login_view = "login"
 
 # Set the timezone to UTC for consistent time stamps
 os.environ["TZ"] = "UTC"
@@ -149,6 +152,13 @@ class LoginForm(flask_wtf.Form):
             if password != user.password:
                 raise wtforms.validators.StopValidation("Invalid password")
 
+def redirect_is_local(url):
+    url = urlparse.urlparse(urlparse.urljoin(flask.request.host_url, url))
+    localhost = urlparse.urlparse(flask.request.host_url)
+    print(url)
+    print(localhost)
+    return url.scheme in ("http", "https") and url.netloc == localhost.netloc
+
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
@@ -167,12 +177,17 @@ def root():
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():
+    if flask_login.current_user.is_authenticated():
+        return flask.redirect("/")
     form = LoginForm()
     if form.validate_on_submit():
         user = load_user(form.username.data)
         flask_login.login_user(user)
         flask.flash("Welcome, " + flask_login.current_user.name)
-        return flask.redirect("/")
+        next_page = flask.request.args.get("next")
+        if not(redirect_is_local(next_page)):
+            next_page = None
+        return flask.redirect(next_page or "/")
     else:
         flash_errors(form)
     return flask.render_template("login.html", form = form)
