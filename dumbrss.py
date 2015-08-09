@@ -226,6 +226,29 @@ def fetch(id):
             print("No feed with ID", id)
 
 @manager.command
+def adduser():
+    username = None
+    password = None
+    admin = None
+
+    while username == None:
+        username = script.prompt("Username")
+
+    while password == None:
+        password = script.prompt_pass("Password")
+
+    while admin == None:
+        admin = script.prompt_bool("Admin")
+
+    if load_user(username) == None:
+        user = User(username, password, 1 if admin else 0)
+        db.session.add(user)
+        db.session.commit()
+        print("Successfully added " + username)
+    else:
+        print("This user already exists!")
+
+@manager.command
 def initdb():
     "Initialize the database"
     db.create_all()
