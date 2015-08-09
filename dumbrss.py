@@ -165,15 +165,9 @@ def flash_errors(form):
             flask.flash(error, "error")
 
 @app.route("/")
-def root():
-    asdf = Entry.query.order_by(Entry.date.desc()).all()
-    hjkl = ""
-    for stuff in asdf:
-        hjkl += str(stuff.feed.name) + ": <a href=\"" + stuff.link + "\">" + stuff.title + "</a>"
-        if stuff.author != None:
-            hjkl += " by " + stuff.author
-        hjkl += " on " + time.ctime(stuff.date) + "<br />"
-    return hjkl
+def feedview():
+    entries = Entry.query.order_by(Entry.date.desc()).all()
+    return flask.render_template("feedview.html", entries = entries, title = "Home")
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():
