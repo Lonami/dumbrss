@@ -3,30 +3,21 @@
 {% block body %}
     <div id="entries">
         <table>
-            <thead>
+            {% for entry in entries %}
                 <tr>
-                    <th></th>
-                    <th>Title</th>
-                    <th>Source</th>
-                    <th></th>
-                    <th></th>
+                    <td><!-- TODO: read/unread status icon --></td>
+                    <td><!-- TODO: starred icon --></td>
+                    <td>
+                        <img
+                         src="{{ entry.feed.icon }}"
+                         title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
+                         >
+                    </td>
+                    <td><a href="{{ entry.link }}">{{ entry.title }}</a></td>
+                    <!-- TODO: render the timestamp with moment.js -->
+                    <td>{{ entry.date }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for entry in entries %}
-                    <tr>
-                        <td><img src="{{ entry.feed.icon }}"></td>
-                        <td><a href="{{ entry.link }}">{{ entry.title }}</a></td>
-                        <td>
-                            {{ (entry.author + " at ") if entry.author != None }}
-                            {{ entry.feed.name }}
-                        </td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                {% endfor %}
-            </tbody>
+            {% endfor %}
         </table>
     </div>
 {% endblock %}
-
