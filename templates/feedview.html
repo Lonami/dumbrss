@@ -1,6 +1,24 @@
 {% extends "main.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
+    <div id="feedlist">
+        <ul>
+            <li><a href="/">All</a></li>
+            {% for feed in current_user.feeds.filter_by(folder_id = None) %}
+                <li><a href="/feed/{{ feed.id }}">{{ feed.name }}</a></li>
+            {% endfor %}
+            {% for folder in current_user.folders %}
+                <li>
+                    <p><a href="/folder/{{ folder.id }}">{{ folder.name }}</a></p>
+                    <ul>
+                        {% for feed in folder.feeds %}
+                            <li><a href="/feed/{{ feed.id }}">{{ feed.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
     <div id="entries">
         <table>
             {% for entry in entries %}
