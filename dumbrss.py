@@ -165,9 +165,25 @@ def flash_errors(form):
             flask.flash(error, "error")
 
 @app.route("/")
-def feedview():
-    entries = Entry.query.order_by(Entry.date.desc()).all()
-    return flask.render_template("feedview.html", entries = entries, title = "Home")
+@app.route("/feed/<int:feed_id>")
+@app.route("/folder/<int:folder_id>")
+def feedview(folder_id = 0, feed_id = 0):
+    if feed_id == 0 and folder_id == 0:
+        title = "Home"
+        entries = Entry.query.order_by(Entry.date.desc()).all()
+    elif feed_id:
+        feed = Feed.query.get(feed_id)
+        if feed == None:
+            return flask.abort(404)
+        title = feed.name
+        entries = Entry.query.filter_by(feed_id = feed_id).order_by(Entry.date.desc()).all()
+    elif folder_id:
+        folder = Folder.query.get(folder_id)
+        if folder == None:
+            return flask.abort(404)
+        title = folder.name
+        entries = Entry.query.join("feed").filter_by(folder_id = folder_id).order_by(Entry.date.desc()).all()
+    return flask.render_template("feedview.html", entries = entries, title = title)
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():
@@ -214,7 +230,7 @@ def webfetch(id = None):
         try:
             fetch_feed(id)
         except AttributeError:
-            return "No feed with ID " + str(id)
+            return flask.abort(404)
     return ""
 
 @manager.option("-f", "--feed", dest = "id", default = None)
