@@ -252,6 +252,7 @@ def fetch(id):
 
 @manager.command
 def adduser():
+    "Add a user to the database"
     username = None
     password = None
     admin = None
