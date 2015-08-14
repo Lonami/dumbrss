@@ -174,16 +174,16 @@ def feedview(folder_id = 0, feed_id = 0):
         title = "Home"
 
     elif feed_id:
-        feed = Feed.query.get(feed_id)
-        if feed == None:
-            return flask.abort(404)
+        feed = Feed.query.get_or_404(feed_id)
+        if feed.owner_id != flask_login.current_user.id:
+            flask.abort(401)
         title = feed.name
         entries = entries.filter_by(feed_id = feed_id)
 
     elif folder_id:
-        folder = Folder.query.get(folder_id)
-        if folder == None:
-            return flask.abort(404)
+        folder = Folder.query.get_or_404(folder_id)
+        if folder.owner_id != flask_login.current_user.id:
+            flask.abort(401)
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
