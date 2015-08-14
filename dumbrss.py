@@ -187,6 +187,7 @@ def feedview(folder_id = 0, feed_id = 0):
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
+    entries = entries.join("feed").filter_by(owner_id = flask_login.current_user.id)
     entries = entries.all()
     return flask.render_template("feedview.html", entries = entries, title = title)
 
