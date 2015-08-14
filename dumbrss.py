@@ -167,10 +167,10 @@ def flash_errors(form):
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
-def feedview(folder_id = 0, feed_id = 0):
+def feedview(folder_id = None, feed_id = None):
     entries = Entry.query.order_by(Entry.date.desc())
 
-    if feed_id == 0 and folder_id == 0:
+    if feed_id == None and folder_id == None:
         title = "Home"
 
     elif feed_id:
@@ -188,8 +188,15 @@ def feedview(folder_id = 0, feed_id = 0):
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
     entries = entries.join("feed").filter_by(owner_id = flask_login.current_user.id)
-    entries = entries.all()
-    return flask.render_template("feedview.html", entries = entries, title = title)
+
+    try:
+        page = int(flask.request.args.get("p") or 1)
+    except ValueError:
+        page = 1
+    entries = entries.paginate(page, 30)
+
+    return flask.render_template("feedview.html", entries = entries, title = title,
+            folder_id = folder_id, feed_id = feed_id)
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():

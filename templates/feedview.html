@@ -21,7 +21,7 @@
     </div>
     <div id="entries">
         <table>
-            {% for entry in entries %}
+            {% for entry in entries.items %}
                 <tr>
                     <td><!-- TODO: read/unread status icon --></td>
                     <td><!-- TODO: starred icon --></td>
@@ -37,5 +37,19 @@
                 </tr>
             {% endfor %}
         </table>
+        <div class=pagination>
+            {%- for page in entries.iter_pages() %}
+                {% if page %}
+                    {% if page != entries.page %}
+                        <a href="{{ url_for("feedview", folder_id = folder_id,
+                            feed_id = feed_id, p = page) }}">{{ page }}</a>
+                    {% else %}
+                        <strong>{{ page }}</strong>
+                    {% endif %}
+                {% else %}
+                    <span class=ellipsis>…</span>
+                {% endif %}
+            {%- endfor %}
+        </div>
     </div>
 {% endblock %}
