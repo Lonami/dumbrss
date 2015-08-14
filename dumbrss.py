@@ -168,21 +168,26 @@ def flash_errors(form):
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
 def feedview(folder_id = 0, feed_id = 0):
+    entries = Entry.query.order_by(Entry.date.desc())
+
     if feed_id == 0 and folder_id == 0:
         title = "Home"
-        entries = Entry.query.order_by(Entry.date.desc()).all()
+
     elif feed_id:
         feed = Feed.query.get(feed_id)
         if feed == None:
             return flask.abort(404)
         title = feed.name
-        entries = Entry.query.filter_by(feed_id = feed_id).order_by(Entry.date.desc()).all()
+        entries = entries.filter_by(feed_id = feed_id)
+
     elif folder_id:
         folder = Folder.query.get(folder_id)
         if folder == None:
             return flask.abort(404)
         title = folder.name
-        entries = Entry.query.join("feed").filter_by(folder_id = folder_id).order_by(Entry.date.desc()).all()
+        entries = entries.join("feed").filter_by(folder_id = folder_id)
+
+    entries = entries.all()
     return flask.render_template("feedview.html", entries = entries, title = title)
 
 @app.route("/login", methods = [ "GET", "POST" ])
