@@ -32,8 +32,9 @@
                          >
                     </td>
                     <td><a href="{{ entry.link }}">{{ entry.title }}</a></td>
-                    <!-- TODO: render the timestamp with moment.js -->
-                    <td>{{ entry.date }}</td>
+                    <td>
+                        <span id="timestamp{{ entry.id }}"></span>
+                    </td>
                 </tr>
             {% endfor %}
         </table>
@@ -52,4 +53,12 @@
             {%- endfor %}
         </div>
     </div>
+{% endblock %}
+{% block js %}
+    <script type="text/javascript">
+        {% for entry in entries.items %}
+            $("span#timestamp{{ entry.id }}").html(moment.unix({{ entry.date }}).format("D MMM YYYY"));
+            $("span#timestamp{{ entry.id }}").attr("title", moment.unix({{ entry.date }}).format("H:mm"));
+        {% endfor %}
+    </script>
 {% endblock %}
