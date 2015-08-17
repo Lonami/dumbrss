@@ -167,6 +167,7 @@ def flash_errors(form):
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
+@flask_login.login_required
 def feedview(folder_id = None, feed_id = None):
     entries = Entry.query.order_by(Entry.date.desc())
 
