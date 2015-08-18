@@ -155,8 +155,6 @@ class LoginForm(flask_wtf.Form):
 def redirect_is_local(url):
     url = urlparse.urlparse(urlparse.urljoin(flask.request.host_url, url))
     localhost = urlparse.urlparse(flask.request.host_url)
-    print(url)
-    print(localhost)
     return url.scheme in ("http", "https") and url.netloc == localhost.netloc
 
 def flash_errors(form):
