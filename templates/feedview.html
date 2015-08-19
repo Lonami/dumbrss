@@ -43,7 +43,11 @@
                     </td>
                     <td><a href="{{ entry.link }}">{{ entry.title }}</a></td>
                     <td>
-                        <span id="timestamp{{ entry.id }}"></span>
+                        <span
+                            data-timestamp="{{ entry.date }}"
+                            class="timestamp"
+                            id="timestamp{{ entry.id }}"
+                            ></span>
                     </td>
                 </tr>
             {% endfor %}
@@ -66,10 +70,13 @@
 {% endblock %}
 {% block js %}
     <script type="text/javascript">
-        {% for entry in entries.items %}
-            $("span#timestamp{{ entry.id }}").html(moment.unix({{ entry.date }}).format("D MMM YYYY"));
-            $("span#timestamp{{ entry.id }}").attr("title", moment.unix({{ entry.date }}).format("H:mm"));
-        {% endfor %}
+        $("span.timestamp").each(function(i, obj)
+        {
+            var time = $(this).attr("data-timestamp");
+            $(this).html(moment.unix(time).format("D MMM YYYY"));
+            $(this).attr("title", moment.unix(time).format("H:mm"));
+        });
+
         $("span.star").click(function()
         {
             if ($(this).attr("data-starred") == "1")
