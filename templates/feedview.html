@@ -4,6 +4,7 @@
     <div id="feedlist">
         <ul>
             <li><a href="/">All</a></li>
+            <li><a href="/starred">Starred</a></li>
             {% for feed in current_user.feeds.filter_by(folder_id = None) %}
                 <li><a href="/feed/{{ feed.id }}">{{ feed.name }}</a></li>
             {% endfor %}
@@ -23,8 +24,17 @@
         <table>
             {% for entry in entries.items %}
                 <tr>
-                    <td><!-- TODO: read/unread status icon --></td>
-                    <td><!-- TODO: starred icon --></td>
+                    <td>
+                        <span id="star{{ entry.id }}"
+                            data-starred="{{ entry.starred }}"
+                            data-id="{{ entry.id }}"
+                            {% if entry.starred == 1 %}
+                                class="star glyphicon glyphicon-star"
+                            {% else %}
+                                class="star glyphicon glyphicon-star-empty"
+                            {% endif %}
+                            ></span>
+                    </td>
                     <td>
                         <img
                          src="{{ entry.feed.icon }}"
@@ -60,5 +70,20 @@
             $("span#timestamp{{ entry.id }}").html(moment.unix({{ entry.date }}).format("D MMM YYYY"));
             $("span#timestamp{{ entry.id }}").attr("title", moment.unix({{ entry.date }}).format("H:mm"));
         {% endfor %}
+        $("span.star").click(function()
+        {
+            if ($(this).attr("data-starred") == "1")
+            {
+                star = "0";
+                $(this).attr("class", "star glyphicon glyphicon-star-empty");
+            }
+            else
+            {
+                star = "1";
+                $(this).attr("class", "star glyphicon glyphicon-star");
+            }
+            $(this).attr("data-starred", star);
+            $.get("/?a=setstarred&id=" + $(this).attr("data-id") + "&f=" + star);
+        });
     </script>
 {% endblock %}

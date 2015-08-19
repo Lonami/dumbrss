@@ -165,14 +165,30 @@ def flash_errors(form):
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
+@app.route("/starred")
 @flask_login.login_required
 def feedview(folder_id = None, feed_id = None):
+    a = flask.request.args.get("a")
+    if a == "setread" or a == "setstarred":
+        entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
+        if entry.feed.owner.id != flask_login.current_user.id:
+            flask.abort(401)
+        try:
+            f = int(flask.request.args.get("f"))
+        except ValueError:
+            flask.abort(401)
+        if not(f in [0, 1]):
+            flask.abort(400)
+        if a == "setread":
+            entry.read = f
+        elif a == "setstarred":
+            entry.starred = f
+        db.session.commit()
+        return ""
+
     entries = Entry.query.order_by(Entry.date.desc())
 
-    if feed_id == None and folder_id == None:
-        title = "Home"
-
-    elif feed_id:
+    if feed_id:
         feed = Feed.query.get_or_404(feed_id)
         if feed.owner_id != flask_login.current_user.id:
             flask.abort(401)
@@ -185,6 +201,13 @@ def feedview(folder_id = None, feed_id = None):
             flask.abort(401)
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
+
+    elif flask.request.path == "/starred":
+        title = "Starred"
+        entries = entries.filter_by(starred = 1)
+
+    else:
+        title = "Home"
 
     entries = entries.join("feed").filter_by(owner_id = flask_login.current_user.id)
 
