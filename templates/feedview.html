@@ -57,7 +57,7 @@
                 {% if page %}
                     {% if page != entries.page %}
                         <a href="{{ url_for("feedview", folder_id = folder_id,
-                            feed_id = feed_id, p = page) }}">{{ page }}</a>
+                            feed_id = feed_id, starred = starred, p = page) }}">{{ page }}</a>
                     {% else %}
                         <strong>{{ page }}</strong>
                     {% endif %}

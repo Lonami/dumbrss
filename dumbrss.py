@@ -165,9 +165,9 @@ def flash_errors(form):
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
-@app.route("/starred")
+@app.route("/starred", defaults = { "starred": True })
 @flask_login.login_required
-def feedview(folder_id = None, feed_id = None):
+def feedview(folder_id = None, feed_id = None, starred = False):
     a = flask.request.args.get("a")
     if a == "setread" or a == "setstarred":
         entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
@@ -202,7 +202,7 @@ def feedview(folder_id = None, feed_id = None):
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
-    elif flask.request.path == "/starred":
+    elif starred:
         title = "Starred"
         entries = entries.filter_by(starred = 1)
 
@@ -218,7 +218,7 @@ def feedview(folder_id = None, feed_id = None):
     entries = entries.paginate(page, 30)
 
     return flask.render_template("feedview.html", entries = entries, title = title,
-            folder_id = folder_id, feed_id = feed_id)
+            folder_id = folder_id, feed_id = feed_id, starred = starred)
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():
