@@ -1,48 +1,77 @@
 {% extends "main.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block body %}
-    <div id="feedlist">
-        <ul>
-            <li><a href="/">All</a></li>
-            <li><a href="/starred">Starred</a></li>
-            {% for feed in current_user.feeds.filter_by(folder_id = None) %}
-                <li><a href="/feed/{{ feed.id }}">{{ feed.name }}</a></li>
-            {% endfor %}
-            {% for folder in current_user.folders %}
-                <li>
-                    <p><a href="/folder/{{ folder.id }}">{{ folder.name }}</a></p>
-                    <ul>
-                        {% for feed in folder.feeds %}
-                            <li><a href="/feed/{{ feed.id }}">{{ feed.name }}</a></li>
-                        {% endfor %}
-                    </ul>
+    <div id="feedlist" class="navmenu navmenu-default navmenu-fixed-left offcanvas-xs">
+        <ul class="nav navmenu-nav">
+            <li class="{{ "active" if not(starred or feed_id or folder_id) }}">
+                <a href="/">
+                    <span class="icon glyphicon glyphicon-th-list"></span>
+                    All
+                </a>
+            </li>
+            <li class="{{ "active" if starred }}">
+                <a href="/starred">
+                    <span class="icon glyphicon glyphicon-star"></span>
+                    Starred
+                </a>
+            </li>
+            {% for feed in current_user.feeds.filter_by(folder_id = None).order_by("name") %}
+                <li class="{{ "active" if feed.id == feed_id }}">
+                    <a href="/feed/{{ feed.id }}">
+                        <img class="feed-icon" src="{{ feed.icon }}">
+                        {{ feed.name }}
+                    </a>
                 </li>
+            {% endfor %}
+            {% for folder in current_user.folders.order_by("name") %}
+                <li class="{{ "active" if folder.id == folder_id }}">
+                    <a href="/folder/{{ folder.id }}">
+                        <span class="icon glyphicon glyphicon-folder-open"></span>
+                        {{ folder.name }}
+                    </a>
+                </li>
+                {% for feed in folder.feeds.order_by("name") %}
+                    <li class="{{ "active" if feed.id == feed_id }} nav-indent">
+                        <a href="/feed/{{ feed.id }}">
+                            <img class="feed-icon" src="{{ feed.icon }}">
+                            {{ feed.name }}
+                        </a>
+                    </li>
+                {% endfor %}
             {% endfor %}
         </ul>
     </div>
-    <div id="entries">
-        <table>
+    <div id="entries" class="contents">
+        {% if entries.items == [] %}
+            <div class="empty-message">
+                Nothing here!
+            </div>
+        {% endif %}
+        <table class="table table-striped table-condensed">
             {% for entry in entries.items %}
                 <tr>
-                    <td>
+                    <td class="icon">
                         <span id="star{{ entry.id }}"
                             data-starred="{{ entry.starred }}"
                             data-id="{{ entry.id }}"
                             {% if entry.starred == 1 %}
-                                class="star glyphicon glyphicon-star"
+                                class="icon star glyphicon glyphicon-star"
                             {% else %}
-                                class="star glyphicon glyphicon-star-empty"
+                                class="icon star glyphicon glyphicon-star-empty"
                             {% endif %}
                             ></span>
                     </td>
-                    <td>
-                        <img
-                         src="{{ entry.feed.icon }}"
-                         title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
-                         >
+                    <td class="icon">
+                        <a href="/feed/{{ entry.feed.id }}">
+                            <img
+                             class="feed-icon"
+                             src="{{ entry.feed.icon }}"
+                             title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
+                             >
+                        </a>
                     </td>
-                    <td><a href="{{ entry.link }}">{{ entry.title }}</a></td>
-                    <td>
+                    <td class="link"><a href="{{ entry.link }}" target="blank">{{ entry.title }}</a></td>
+                    <td class="date hidden-xs hidden-sm">
                         <span
                             data-timestamp="{{ entry.date }}"
                             class="timestamp"
@@ -52,20 +81,20 @@
                 </tr>
             {% endfor %}
         </table>
-        <div class=pagination>
-            {%- for page in entries.iter_pages() %}
+        <div class="text-center"><ul class=pagination>
+            {%- for page in entries.iter_pages(left_edge = 1, right_edge = 1, left_current = 2, right_current = 3) %}
                 {% if page %}
                     {% if page != entries.page %}
-                        <a href="{{ url_for("feedview", folder_id = folder_id,
-                            feed_id = feed_id, starred = starred, p = page) }}">{{ page }}</a>
+                        <li><a href="{{ url_for("feedview", folder_id = folder_id,
+                            feed_id = feed_id, starred = starred, p = page) }}">{{ page }}</a></li>
                     {% else %}
-                        <strong>{{ page }}</strong>
+                        <li class="active"><a>{{ page }}</a></li>
                     {% endif %}
                 {% else %}
-                    <span class=ellipsis>…</span>
+                    <li class="disabled"><a><span class=ellipsis>…</span></a></li>
                 {% endif %}
             {%- endfor %}
-        </div>
+        </ul></div>
     </div>
 {% endblock %}
 {% block js %}

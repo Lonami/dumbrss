@@ -4,22 +4,37 @@
         {% block head %}
             <title>{% block title %}{% endblock %} - dumbrss</title>
             <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+            <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/css/jasny-bootstrap.min.css">
+            <link rel="stylesheet" type="text/css" href="/static/style.css">
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
         {% endblock %}
     </head>
     <body>
-        {% with messages = get_flashed_messages() %}
+        {% block navbar %}
+            <div class="navbar navbar-default navbar-fixed-top">
+                <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <span class="navbar-brand">{{ self.title() }} - dumbrss</span>
+            </div>
+        {% endblock %}
+        {% with messages = get_flashed_messages(with_categories = true) %}
             {% if messages %}
-                <ul id="flash">
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
+                <div class="alerts">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
-                </ul>
+                </div>
             {% endif %}
         {% endwith %}
         {% block body %}
         {% endblock %}
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jasny-bootstrap/3.1.3/js/jasny-bootstrap.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
         {% block js %}
         {% endblock %}

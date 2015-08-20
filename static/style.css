@@ -1,0 +1,91 @@
+@media (max-width: 767px)
+{
+    body
+    {
+        padding-top: 49px;
+    }
+}
+
+@media (min-width: 768px)
+{
+    body
+    {
+        padding-top: 70px;
+        padding-left: 250px;
+    }
+
+    .navmenu
+    {
+        width: 250px;
+        margin-top: 50px;
+        z-index: 1029;
+    }
+
+    div.contents
+    {
+        padding: 0 15px;
+    }
+}
+
+.navbar-toggle
+{
+    float: left;
+    margin-left: 15px;
+    margin-right: 0;
+}
+
+img.feed-icon
+{
+    width: 1.5em;
+    height: 1.5em;
+}
+
+span.icon
+{
+    font-size: 1.5em;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.glyphicon-folder-open
+{
+    margin-right: 5px;
+}
+
+.table > tbody > tr > td
+{
+    vertical-align: middle;
+}
+
+td.link
+{
+    width: 100%;
+}
+
+td.date
+{
+    white-space: nowrap;
+    text-align: right;
+}
+
+ul.pagination
+{
+    margin: auto;
+}
+
+.nav > li.nav-indent > a
+{
+    padding-left: 41px;
+}
+
+.empty-message
+{
+    text-align: center;
+    font-size: 2em;
+    padding-top: 100px;
+}
+
+.alerts
+{
+    padding: 0 15px;
+}

@@ -160,7 +160,7 @@ def redirect_is_local(url):
 def flash_errors(form):
     for field, errors in form.errors.items():
         for error in errors:
-            flask.flash(error, "error")
+            flask.flash(error, "danger")
 
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
@@ -227,8 +227,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = load_user(form.username.data)
-        flask_login.login_user(user)
-        flask.flash("Welcome, " + flask_login.current_user.name)
+        flask_login.login_user(user, remember = form.remember.data)
+        flask.flash("Welcome, " + flask_login.current_user.name + ".", "success")
         next_page = flask.request.args.get("next")
         if not(redirect_is_local(next_page)):
             next_page = None
