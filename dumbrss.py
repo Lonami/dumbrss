@@ -115,7 +115,7 @@ class Folder(db.Model):
 
 class User(db.Model, flask_login.UserMixin):
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.Text, unique = True)
+    name = db.Column(db.Text)
     password = db.Column(db.Text)
     salt = db.Column(db.Binary)
     admin = db.Column(db.Integer)
