@@ -14,14 +14,7 @@
         padding-left: 250px;
     }
 
-    .navmenu
-    {
-        width: 250px;
-        margin-top: 50px;
-        z-index: 1029;
-    }
-
-    div.contents
+    .contents
     {
         padding: 0 15px;
     }
@@ -34,7 +27,14 @@
     margin-right: 0;
 }
 
-img.feed-icon
+.navmenu
+{
+    width: 250px;
+    margin-top: 50px;
+    z-index: 1029;
+}
+
+.feed-icon
 {
     width: 1.5em;
     height: 1.5em;
@@ -47,7 +47,7 @@ span.icon
     vertical-align: middle;
 }
 
-.glyphicon-folder-open
+span.icon .glyphicon-folder-open
 {
     margin-right: 5px;
 }
@@ -68,12 +68,13 @@ td.date
     text-align: right;
 }
 
-ul.pagination
+.pagination
 {
     margin: auto;
+    margin-bottom: 15px;
 }
 
-.nav > li.nav-indent > a
+.nav > .nav-indent > a
 {
     padding-left: 41px;
 }
