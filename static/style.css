@@ -4,6 +4,11 @@
     {
         padding-top: 49px;
     }
+
+    .alerts
+    {
+        padding-top: 21px;
+    }
 }
 
 @media (min-width: 768px)
@@ -88,5 +93,6 @@ td.date
 
 .alerts
 {
-    padding: 0 15px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
