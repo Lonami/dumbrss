@@ -108,15 +108,16 @@
 
         $("span.star").click(function()
         {
+            $(this).removeClass("glyphicon-star glyphicon-star-empty");
             if ($(this).attr("data-starred") == "1")
             {
                 star = "0";
-                $(this).attr("class", "star glyphicon glyphicon-star-empty");
+                $(this).addClass("glyphicon-star-empty");
             }
             else
             {
                 star = "1";
-                $(this).attr("class", "star glyphicon glyphicon-star");
+                $(this).addClass("glyphicon-star");
             }
             $(this).attr("data-starred", star);
             $.get("/?a=setstarred&id=" + $(this).attr("data-id") + "&f=" + star);
