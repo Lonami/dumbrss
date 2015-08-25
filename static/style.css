@@ -25,6 +25,20 @@
     }
 }
 
+.navbar-brand
+{
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand img
+{
+    width: 32px;
+    height: 32px;
+    display: inline;
+    margin-right: 5px;
+}
+
 .navbar-toggle
 {
     float: left;

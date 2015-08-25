@@ -18,7 +18,7 @@
             {% for feed in current_user.feeds.filter_by(folder_id = None).order_by("name") %}
                 <li class="{{ "active" if feed.id == feed_id }}">
                     <a href="/feed/{{ feed.id }}">
-                        <img class="feed-icon" src="{{ feed.icon }}">
+                        <img class="feed-icon" src="{{ feed.icon or "/static/rss.svg" }}">
                         {{ feed.name }}
                     </a>
                 </li>
@@ -33,7 +33,7 @@
                 {% for feed in folder.feeds.order_by("name") %}
                     <li class="{{ "active" if feed.id == feed_id }} nav-indent">
                         <a href="/feed/{{ feed.id }}">
-                            <img class="feed-icon" src="{{ feed.icon }}">
+                            <img class="feed-icon" src="{{ feed.icon or "/static/rss.svg" }}">
                             {{ feed.name }}
                         </a>
                     </li>
@@ -65,7 +65,7 @@
                         <a href="/feed/{{ entry.feed.id }}">
                             <img
                              class="feed-icon"
-                             src="{{ entry.feed.icon }}"
+                             src="{{ entry.feed.icon or "/static/rss.svg" }}"
                              title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
                              >
                         </a>
