@@ -14,6 +14,5 @@ source venv/bin/activate
 ```
 Finally, initialize the database with `./dumbrss.py initdb`.  
 You need to set up a cronjob to run `./dumbrss.py fetch` from within the virtualenv
-as often as you want. Alternatively you can use a webcron service to poll
-`http://dumbrss.your.server/fetch`.  
+as often as you want.  
 

@@ -256,18 +256,6 @@ def fetch_feeds():
 def fetch_feed(id):
     f = Feed.query.filter_by(id = id).first().fetch()
 
-@app.route("/fetch")
-@app.route("/fetch/<int:id>")
-def webfetch(id = None):
-    if id == None:
-        fetch_feeds()
-    else:
-        try:
-            fetch_feed(id)
-        except AttributeError:
-            return flask.abort(404)
-    return ""
-
 @manager.option("-f", "--feed", dest = "id", default = None)
 def fetch(id):
     "Fetch feed updates"
