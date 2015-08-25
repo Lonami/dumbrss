@@ -172,6 +172,9 @@ def flash_errors(form):
         for error in errors:
             flask.flash(error, "danger")
 
+def urlopen_mozilla(url):
+    return urlrequest.urlopen(urlrequest.Request(url, headers = { "User-Agent": "Mozilla/5.0" } ))
+
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
@@ -275,14 +278,14 @@ def add_feed():
         return "invalid url"
     if Feed.query.filter_by(url = url).count():
         return "feed exists"
-    page = BeautifulSoup(urlrequest.urlopen(f.feed.link))
+    page = BeautifulSoup(urlopen_mozilla(f.feed.link))
     icon = page.find("link", rel = "shortcut icon")
     if icon != None:
         icon = urlparse.urljoin(f.feed.link, icon["href"])
     else:
         icon = urlparse.urljoin(f.feed.link, "/favicon.ico")
         try:
-            urlrequest.urlopen(icon)
+            urlopen_mozilla(icon)
         except urlerror.HTTPError:
             icon = None
     newfeed = Feed(flask_login.current_user, None, f.feed.title, icon, f.feed.link, url)
