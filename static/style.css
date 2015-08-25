@@ -52,7 +52,7 @@ span.icon
     vertical-align: middle;
 }
 
-span.icon .glyphicon-folder-open
+span.icon.glyphicon.glyphicon-folder-open
 {
     margin-right: 5px;
 }
