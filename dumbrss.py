@@ -11,6 +11,9 @@ import flask.ext.login as flask_login
 import flask_wtf
 import wtforms
 import urllib.parse as urlparse
+import urllib.request as urlrequest
+import urllib.error as urlerror
+from bs4 import BeautifulSoup
 
 app = flask.Flask(__name__)
 
@@ -93,7 +96,14 @@ class Feed(db.Model):
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
-                date = int(time.mktime(entry.published_parsed))
+                if not(hasattr(entry, "summary")):
+                    entry.summary = None
+                if hasattr(entry, "published_parsed"):
+                    date = int(time.mktime(entry.published_parsed))
+                elif hasattr(entry, "updated_parsed"):
+                    date = int(time.mktime(entry.updated_parsed))
+                else:
+                    date = int(time.time())
                 dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
                 db.session.add(dbentry)
 
@@ -255,6 +265,31 @@ def fetch_feeds():
 
 def fetch_feed(id):
     f = Feed.query.filter_by(id = id).first().fetch()
+
+@app.route("/addfeed")
+@flask_login.login_required
+def add_feed():
+    url = flask.request.args.get("url")
+    f = feedparser.parse(url)
+    if f.feed == {}:
+        return "invalid url"
+    if Feed.query.filter_by(url = url).count():
+        return "feed exists"
+    page = BeautifulSoup(urlrequest.urlopen(f.feed.link))
+    icon = page.find("link", rel = "shortcut icon")
+    if icon != None:
+        icon = urlparse.urljoin(f.feed.link, icon["href"])
+    else:
+        icon = urlparse.urljoin(f.feed.link, "/favicon.ico")
+        try:
+            urlrequest.urlopen(icon)
+        except urlerror.HTTPError:
+            icon = None
+    newfeed = Feed(flask_login.current_user, None, f.feed.title, icon, f.feed.link, url)
+    db.session.add(newfeed)
+    db.session.commit()
+    newfeed.fetch()
+    return "feed added"
 
 @manager.option("-f", "--feed", dest = "id", default = None)
 def fetch(id):
