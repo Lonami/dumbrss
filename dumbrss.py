@@ -149,7 +149,6 @@ class LoginForm(flask_wtf.Form):
     password = wtforms.PasswordField("Password",
             validators = [ v.DataRequired("Please enter your password") ])
     remember = wtforms.BooleanField("Remember me")
-    submit = wtforms.SubmitField("Log in")
 
     def validate_username(self, field):
         if load_user(field.data) == None:
@@ -161,6 +160,12 @@ class LoginForm(flask_wtf.Form):
             password = flask_login.make_secure_token(field.data.encode(), user.salt)
             if password != user.password:
                 raise wtforms.validators.StopValidation("Invalid password")
+
+class AddFeedForm(flask_wtf.Form):
+    import wtforms.validators as v
+    url = wtforms.StringField("URL",
+            validators = [ v.DataRequired("Please provide a URL"),
+                v.URL(message = "Please enter a valid URL") ])
 
 def redirect_is_local(url):
     url = urlparse.urlparse(urlparse.urljoin(flask.request.host_url, url))
@@ -230,8 +235,11 @@ def feedview(folder_id = None, feed_id = None, starred = False):
         page = 1
     entries = entries.paginate(page, 30)
 
+    addfeedform = AddFeedForm()
+
     return flask.render_template("feedview.html", entries = entries, title = title,
-            folder_id = folder_id, feed_id = feed_id, starred = starred)
+            folder_id = folder_id, feed_id = feed_id, starred = starred,
+            addfeedform = addfeedform)
 
 @app.route("/login", methods = [ "GET", "POST" ])
 def login():
@@ -269,30 +277,38 @@ def fetch_feeds():
 def fetch_feed(id):
     f = Feed.query.filter_by(id = id).first().fetch()
 
-@app.route("/addfeed")
+@app.route("/addfeed", methods = [ "POST" ])
 @flask_login.login_required
 def add_feed():
-    url = flask.request.args.get("url")
-    f = feedparser.parse(url)
-    if f.feed == {}:
-        return "invalid url"
-    if Feed.query.filter_by(url = url).count():
-        return "feed exists"
-    page = BeautifulSoup(urlopen_mozilla(f.feed.link))
-    icon = page.find("link", rel = "shortcut icon")
-    if icon != None:
-        icon = urlparse.urljoin(f.feed.link, icon["href"])
-    else:
-        icon = urlparse.urljoin(f.feed.link, "/favicon.ico")
-        try:
-            urlopen_mozilla(icon)
-        except urlerror.HTTPError:
-            icon = None
-    newfeed = Feed(flask_login.current_user, None, f.feed.title, icon, f.feed.link, url)
-    db.session.add(newfeed)
-    db.session.commit()
-    newfeed.fetch()
-    return "feed added"
+    form = AddFeedForm()
+    if form.validate_on_submit():
+        url = form.url.data
+        print(url)
+        f = feedparser.parse(url)
+        if hasattr(f, "bozo_exception"):
+            flask.flash("This is not a valid feed", "danger")
+            return flask.redirect("/")
+        if flask_login.current_user.feeds.filter_by(url = url).count():
+            flask.flash("This feed already exists", "danger")
+            return flask.redirect("/")
+        page = BeautifulSoup(urlopen_mozilla(f.feed.link))
+        icon = page.find("link", rel = "shortcut icon")
+        if icon != None:
+            icon = urlparse.urljoin(f.feed.link, icon["href"])
+        else:
+            icon = urlparse.urljoin(f.feed.link, "/favicon.ico")
+            try:
+                urlopen_mozilla(icon)
+            except urlerror.HTTPError:
+                icon = None
+        newfeed = Feed(flask_login.current_user, None, f.feed.title, icon, f.feed.link, url)
+        db.session.add(newfeed)
+        db.session.commit()
+        newfeed.fetch()
+        flask.flash("Feed added!", "success")
+        return flask.redirect(flask.url_for("feedview", feed_id = newfeed.id, starred = False))
+    flash_errors(form)
+    return flask.redirect("/")
 
 @manager.option("-f", "--feed", dest = "id", default = None)
 def fetch(id):

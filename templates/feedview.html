@@ -39,6 +39,19 @@
                     </li>
                 {% endfor %}
             {% endfor %}
+            <li id="addfeed">
+                <form method="POST" action="/addfeed">
+                    {{ addfeedform.hidden_tag() }}
+                    <div class="input-group">
+                        <input class="form-control" id="url" name="url" placeholder="Feed URL" type="url">
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" id="submit" type="submit">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                        </span>
+                    </div>
+                </form>
+            </li>
         </ul>
     </div>
     <div id="entries" class="contents">
