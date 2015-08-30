@@ -98,6 +98,13 @@ td.date
     padding-left: 41px;
 }
 
+.nav > li > a
+{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .empty-message
 {
     text-align: center;
