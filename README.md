@@ -1,8 +1,15 @@
 # dumbrss
-A bullshit-free, web-based RSS reader  
+A bloat-free, web-based RSS reader  
 
 ## Features
-TODO  
+- Collects only links
+- Global, categorized and single feed views
+- "Star" stuff to read later
+- Minimal JavaScript usage
+
+## To do
+- Big refactor
+- Admin panel
 
 ## Setup
 dumbrss uses [Flask](http://flask.pocoo.org/). To install, simply set up your favority WSGI
