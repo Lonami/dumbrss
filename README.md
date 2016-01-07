@@ -1,5 +1,6 @@
 # dumbrss
 A bloat-free, web-based RSS reader  
+![Screenshot](https://sr.ht/Y-XD.png)
 
 ## Features
 - Collects only links
