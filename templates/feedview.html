@@ -1,6 +1,6 @@
 {% extends "main.html" %}
-{% block title %}{{ title }}{% endblock %}
 {% block body %}
+    <!-- Sidebar -->
     <div id="feedlist" class="navmenu navmenu-default navmenu-fixed-left offcanvas-xs">
         <ul class="nav navmenu-nav">
             <li class="{{ "active" if not(starred or feed_id or folder_id) }}">
@@ -15,7 +15,7 @@
                     Starred
                 </a>
             </li>
-            {% for feed in feeds.filter_by(folder_id = None).order_by("name") %}
+            {% for feed in root_feeds.order_by("name") %}
                 <li class="{{ "active" if feed.id == feed_id }}">
                     <a href="/feed/{{ feed.id }}">
                         <img class="feed-icon" src="{{ feed.icon or "/static/rss.svg" }}">
@@ -54,12 +54,15 @@
             </li>
         </ul>
     </div>
+
+    <!-- Main contents -->
     <div id="entries" class="contents">
         {% if entries.items == [] %}
             <div class="empty-message">
                 Nothing here!
             </div>
         {% endif %}
+
         <table class="table table-striped table-condensed">
             {% for entry in entries.items %}
                 <tr>
@@ -94,6 +97,7 @@
                 </tr>
             {% endfor %}
         </table>
+
         <div class="text-center"><ul class=pagination>
             {%- for page in entries.iter_pages(left_edge = 1, right_edge = 1, left_current = 2, right_current = 3) %}
                 {% if page %}
@@ -110,30 +114,7 @@
         </ul></div>
     </div>
 {% endblock %}
-{% block js %}
-    <script type="text/javascript">
-        $("span.timestamp").each(function(i, obj)
-        {
-            var time = $(this).attr("data-timestamp");
-            $(this).html(moment.unix(time).format("D MMM YYYY"));
-            $(this).attr("title", moment.unix(time).format("H:mm"));
-        });
 
-        $("span.star").click(function()
-        {
-            $(this).removeClass("glyphicon-star glyphicon-star-empty");
-            if ($(this).attr("data-starred") == "1")
-            {
-                star = "0";
-                $(this).addClass("glyphicon-star-empty");
-            }
-            else
-            {
-                star = "1";
-                $(this).addClass("glyphicon-star");
-            }
-            $(this).attr("data-starred", star);
-            $.get("/?a=setstarred&id=" + $(this).attr("data-id") + "&f=" + star);
-        });
-    </script>
+{% block js %}
+    <script src="/static/feedview.js"></script>
 {% endblock %}

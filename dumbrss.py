@@ -132,28 +132,15 @@ def urlopen_mozilla(url):
 @app.route("/folder/<int:folder_id>")
 @app.route("/starred", defaults = { "starred": True })
 def feedview(folder_id = None, feed_id = None, starred = False):
-    a = flask.request.args.get("a")
-    if a == "setstarred":
-        entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
-        try:
-            f = int(flask.request.args.get("f"))
-        except ValueError:
-            flask.abort(401)
-        if not(f in [0, 1]):
-            flask.abort(400)
-        entry.starred = f
-        db.session.commit()
-        return ""
-
     entries = Entry.query.order_by(Entry.date.desc())
 
     if feed_id:
-        feed = Feed.query.get_or_404(feed_id)
+        Feed.query.get_or_404(feed_id)
         title = feed.name
         entries = entries.filter_by(feed_id = feed_id)
 
     elif folder_id:
-        folder = Folder.query.get_or_404(folder_id)
+        Folder.query.get_or_404(folder_id)
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
@@ -174,17 +161,29 @@ def feedview(folder_id = None, feed_id = None, starred = False):
 
     addfeedform = AddFeedForm()
 
-    return flask.render_template("feedview.html", entries = entries, title = title,
-            folder_id = folder_id, feed_id = feed_id, starred = starred,
-            addfeedform = addfeedform, feeds = Feed.query, folders = Folder.query)
+    return flask.render_template("feedview.html",
+            title = title,
+            entries = entries,
+            folder_id = folder_id,
+            feed_id = feed_id,
+            starred = starred,
+            addfeedform = addfeedform,
+            root_feeds = Feed.query.filter_by(folder_id = None),
+            folders = Folder.query
+    )
 
-def fetch_feeds():
-    for feed in Feed.query.yield_per(1000):
-        feed.fetch(commit = False)
+@app.route("/setstarred")
+def setstarred():
+    entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
+    try:
+        f = int(flask.request.args.get("f"))
+    except ValueError:
+        flask.abort(400)
+    if not(f in [0, 1]):
+        flask.abort(400)
+    entry.starred = f
     db.session.commit()
-
-def fetch_feed(id):
-    f = Feed.query.filter_by(id = id).first().fetch()
+    return ""
 
 @app.route("/addfeed", methods = [ "POST" ])
 def add_feed():
@@ -222,7 +221,9 @@ def add_feed():
 def fetch(id):
     "Fetch feed updates"
     if id is None:
-        fetch_feeds()
+        for feed in Feed.query.yield_per(1000):
+            feed.fetch(commit = False)
+        db.session.commit()
     else:
         try:
             id = int(id)
@@ -231,7 +232,7 @@ def fetch(id):
             return
 
         try:
-            fetch_feed(id)
+            f = Feed.query.filter_by(id = id).first().fetch()
         except AttributeError:
             print("No feed with ID", id)
 
