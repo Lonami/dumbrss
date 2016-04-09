@@ -1,7 +1,6 @@
 flask
 flask-script
 flask-sqlalchemy
-flask-login
 flask-wtf
 feedparser
 beautifulsoup4

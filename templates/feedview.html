@@ -15,7 +15,7 @@
                     Starred
                 </a>
             </li>
-            {% for feed in current_user.feeds.filter_by(folder_id = None).order_by("name") %}
+            {% for feed in feeds.filter_by(folder_id = None).order_by("name") %}
                 <li class="{{ "active" if feed.id == feed_id }}">
                     <a href="/feed/{{ feed.id }}">
                         <img class="feed-icon" src="{{ feed.icon or "/static/rss.svg" }}">
@@ -23,7 +23,7 @@
                     </a>
                 </li>
             {% endfor %}
-            {% for folder in current_user.folders.order_by("name") %}
+            {% for folder in folders.order_by("name") %}
                 <li class="{{ "active" if folder.id == folder_id }}">
                     <a href="/folder/{{ folder.id }}">
                         <span class="icon glyphicon glyphicon-folder-open"></span>
