@@ -112,7 +112,8 @@ class Folder(db.Model):
 class AddFeedForm(flask_wtf.Form):
     import wtforms.validators as v
     url = wtforms.StringField("URL",
-            validators = [ v.URL(message = "Please enter a valid URL") ])
+            validators = [ v.URL(message = "Please enter a valid URL") ]
+    )
 
 def redirect_is_local(url):
     url = urlparse.urlparse(urlparse.urljoin(flask.request.host_url, url))

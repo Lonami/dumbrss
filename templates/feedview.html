@@ -80,10 +80,10 @@
                     <td class="icon">
                         <a href="/feed/{{ entry.feed.id }}">
                             <img
-                             class="feed-icon"
-                             src="{{ entry.feed.icon or "/static/rss.svg" }}"
-                             title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
-                             >
+                                class="feed-icon"
+                                src="{{ entry.feed.icon or "/static/rss.svg" }}"
+                                title="{{ (entry.author + " on ") if entry.author != None }}{{ entry.feed.name }}"
+                                >
                         </a>
                     </td>
                     <td class="link"><a href="{{ entry.link }}" target="blank">{{ entry.title }}</a></td>
