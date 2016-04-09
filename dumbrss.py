@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
 import os
-import flask
 import time
-import feedparser
-import flask.ext.script as script
-import flask.ext.sqlalchemy as f_sqlalchemy
-import sqlalchemy
-import flask_wtf
-import wtforms
+import urllib.error as urlerror
 import urllib.parse as urlparse
 import urllib.request as urlrequest
-import urllib.error as urlerror
+
+import flask
+import flask.ext.script as script
+import flask.ext.sqlalchemy as f_sqlalchemy
+import flask_wtf
+
 from bs4 import BeautifulSoup
+import feedparser
+import sqlalchemy
+import wtforms
 
 app = flask.Flask(__name__)
 
@@ -20,11 +22,11 @@ app = flask.Flask(__name__)
 app.config.update(dict(
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(app.root_path, "dumbrss.db")
 ))
-if os.getenv("DRSS_CONFIG") == None:
+if os.getenv("DRSS_CONFIG") is None:
     os.environ["DRSS_CONFIG"] = os.path.join(app.root_path, "config.py")
 app.config.from_envvar("DRSS_CONFIG", silent = True)
 
-if app.config["SECRET_KEY"] == None:
+if app.config["SECRET_KEY"] is None:
     f = open(os.environ["DRSS_CONFIG"], "a")
     app.config["SECRET_KEY"] = os.urandom(32)
     f.write("SECRET_KEY = " + str(app.config["SECRET_KEY"]) + "\n")
@@ -43,20 +45,16 @@ class Entry(db.Model):
     feed = db.relationship("Feed", backref = db.backref("entries", lazy = "dynamic"))
     link = db.Column(db.Text)
     title = db.Column(db.Text)
-    summary = db.Column(db.Text)
     author = db.Column(db.Text)
     date = db.Column(db.Integer)
-    read = db.Column(db.Integer)
     starred = db.Column(db.Integer)
 
-    def __init__(self, feed, link, title, summary, author, date):
+    def __init__(self, feed, link, title, author, date):
         self.feed = feed
         self.link = link
         self.title = title
-        self.summary = summary
         self.author = author
         self.date = date
-        self.read = 0
         self.starred = 0
 
     def __repr__(self):
@@ -89,15 +87,13 @@ class Feed(db.Model):
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
-                if not(hasattr(entry, "summary")):
-                    entry.summary = None
                 if hasattr(entry, "published_parsed"):
                     date = int(time.mktime(entry.published_parsed))
                 elif hasattr(entry, "updated_parsed"):
                     date = int(time.mktime(entry.updated_parsed))
                 else:
                     date = int(time.time())
-                dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
+                dbentry = Entry(self, entry.link, entry.title, entry.author, date)
                 db.session.add(dbentry)
 
         if commit:
@@ -116,8 +112,7 @@ class Folder(db.Model):
 class AddFeedForm(flask_wtf.Form):
     import wtforms.validators as v
     url = wtforms.StringField("URL",
-            validators = [ v.DataRequired("Please provide a URL"),
-                v.URL(message = "Please enter a valid URL") ])
+            validators = [ v.URL(message = "Please enter a valid URL") ])
 
 def redirect_is_local(url):
     url = urlparse.urlparse(urlparse.urljoin(flask.request.host_url, url))
@@ -138,7 +133,7 @@ def urlopen_mozilla(url):
 @app.route("/starred", defaults = { "starred": True })
 def feedview(folder_id = None, feed_id = None, starred = False):
     a = flask.request.args.get("a")
-    if a == "setread" or a == "setstarred":
+    if a == "setstarred":
         entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
         try:
             f = int(flask.request.args.get("f"))
@@ -146,10 +141,7 @@ def feedview(folder_id = None, feed_id = None, starred = False):
             flask.abort(401)
         if not(f in [0, 1]):
             flask.abort(400)
-        if a == "setread":
-            entry.read = f
-        elif a == "setstarred":
-            entry.starred = f
+        entry.starred = f
         db.session.commit()
         return ""
 
@@ -209,7 +201,7 @@ def add_feed():
             return flask.redirect("/")
         page = BeautifulSoup(urlopen_mozilla(f.feed.link))
         icon = page.find("link", rel = "shortcut icon")
-        if icon != None:
+        if icon is not None:
             icon = urlparse.urljoin(f.feed.link, icon["href"])
         else:
             icon = urlparse.urljoin(f.feed.link, "/favicon.ico")
@@ -229,7 +221,7 @@ def add_feed():
 @manager.option("-f", "--feed", dest = "id", default = None)
 def fetch(id):
     "Fetch feed updates"
-    if id == None:
+    if id is None:
         fetch_feeds()
     else:
         try:
