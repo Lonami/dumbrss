@@ -136,12 +136,12 @@ def feedview(folder_id = None, feed_id = None, starred = False):
     entries = Entry.query.order_by(Entry.date.desc())
 
     if feed_id:
-        Feed.query.get_or_404(feed_id)
+        feed = Feed.query.get_or_404(feed_id)
         title = feed.name
         entries = entries.filter_by(feed_id = feed_id)
 
     elif folder_id:
-        Folder.query.get_or_404(folder_id)
+        folder = Folder.query.get_or_404(folder_id)
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
 
