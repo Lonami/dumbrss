@@ -133,7 +133,7 @@ def urlopen_mozilla(url):
 @app.route("/folder/<int:folder_id>")
 @app.route("/starred", defaults = { "starred": True })
 def feedview(folder_id = None, feed_id = None, starred = False):
-    entries = Entry.query.order_by(Entry.date.desc())
+    entries = Entry.query.order_by(Entry.id.desc())
 
     if feed_id:
         feed = Feed.query.get_or_404(feed_id)
