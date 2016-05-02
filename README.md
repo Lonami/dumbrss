@@ -17,8 +17,8 @@ dumbrss uses [Flask](http://flask.pocoo.org/). To install, simply set up your fa
 server and create a virtualenv to run dumbrss into:  
 ```
 virtualenv3 venv
-pip install -r requirements.txt
 source venv/bin/activate
+pip install -r requirements.txt
 ```
 Finally, initialize the database with `./dumbrss.py initdb`.  
 You need to set up a cronjob to run `./dumbrss.py fetch` from within the virtualenv
