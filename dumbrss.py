@@ -45,14 +45,16 @@ class Entry(db.Model):
     feed = db.relationship("Feed", backref = db.backref("entries", lazy = "dynamic"))
     link = db.Column(db.Text)
     title = db.Column(db.Text)
+    summary = db.Column(db.Text)
     author = db.Column(db.Text)
     date = db.Column(db.Integer)
     starred = db.Column(db.Integer)
 
-    def __init__(self, feed, link, title, author, date):
+    def __init__(self, feed, link, title, summary, author, date):
         self.feed = feed
         self.link = link
         self.title = title
+        self.summary = summary
         self.author = author
         self.date = date
         self.starred = 0
@@ -89,13 +91,15 @@ class Feed(db.Model):
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
+                if not(hasattr(entry, "summary")):
+                    entry.summary = None
                 if hasattr(entry, "published_parsed"):
                     date = int(time.mktime(entry.published_parsed))
                 elif hasattr(entry, "updated_parsed"):
                     date = int(time.mktime(entry.updated_parsed))
                 else:
                     date = int(time.time())
-                dbentry = Entry(self, entry.link, entry.title, entry.author, date)
+                dbentry = Entry(self, entry.link, entry.title, entry.summary, entry.author, date)
                 db.session.add(dbentry)
 
         if commit:
