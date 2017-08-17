@@ -12,16 +12,16 @@
         {% endblock %}
     </head>
     <body>
-        {% block navbar %}
-            <div class="navbar navbar-default navbar-fixed-top">
-                <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <span class="navbar-brand"><img src="/static/rss.svg">{{ self.title() }} - dumbrss</span>
-            </div>
-        {% endblock %}
+        <div class="navbar navbar-default navbar-fixed-top">
+            <button type="button" class="navbar-toggle" data-toggle="offcanvas" data-target=".navmenu">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <span class="navbar-brand"><img src="/static/rss.svg">{{ self.title() }} - dumbrss</span>
+            {% block navbar %}
+            {% endblock %}
+        </div>
         {% with messages = get_flashed_messages(with_categories = true) %}
             {% if messages %}
                 <div class="alerts">
