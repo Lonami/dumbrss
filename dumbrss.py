@@ -7,8 +7,8 @@ import urllib.parse as urlparse
 import urllib.request as urlrequest
 
 import flask
-import flask.ext.script as script
-import flask.ext.sqlalchemy as f_sqlalchemy
+import flask_script
+import flask_sqlalchemy
 import flask_wtf
 
 from bs4 import BeautifulSoup
@@ -32,8 +32,11 @@ if app.config["SECRET_KEY"] is None:
     f.write("SECRET_KEY = " + str(app.config["SECRET_KEY"]) + "\n")
     f.close()
 
-db = f_sqlalchemy.SQLAlchemy(app)
-manager = script.Manager(app)
+# Deprecated
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = flask_sqlalchemy.SQLAlchemy(app)
+manager = flask_script.Manager(app)
 
 # Set the timezone to UTC for consistent time stamps
 os.environ["TZ"] = "UTC"
