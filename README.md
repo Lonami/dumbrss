@@ -8,8 +8,8 @@ A bloat-free, web-based RSS reader
 - Minimal JavaScript usage
 
 ## To do
-- Big refactor
-- Admin panel
+- Rewrite it in Rust™
+- Have proper features
 
 ## Setup
 dumbrss uses [Flask](http://flask.pocoo.org/). To install, simply set up your favority WSGI
