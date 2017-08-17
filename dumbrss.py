@@ -93,6 +93,8 @@ class Feed(db.Model):
         d = feedparser.parse(self.url)
 
         for entry in d.entries:
+            if not(hasattr(entry, "link")):
+                continue
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
@@ -204,7 +206,7 @@ def feedview(folder_id = None, feed_id = None, starred = False):
         db.session.commit()
         return ""
 
-    entries = Entry.query.order_by(Entry.date.desc())
+    entries = Entry.query.order_by(Entry.id.desc())
 
     if feed_id:
         feed = Feed.query.get_or_404(feed_id)
@@ -285,9 +287,6 @@ def add_feed():
         url = form.url.data
         print(url)
         f = feedparser.parse(url)
-        if hasattr(f, "bozo_exception"):
-            flask.flash("This is not a valid feed", "danger")
-            return flask.redirect("/")
         if flask_login.current_user.feeds.filter_by(url = url).count():
             flask.flash("This feed already exists", "danger")
             return flask.redirect("/")
