@@ -195,9 +195,6 @@ def add_feed():
         url = form.url.data
         print(url)
         f = feedparser.parse(url)
-        if hasattr(f, "bozo_exception"):
-            flask.flash("This is not a valid feed", "danger")
-            return flask.redirect("/")
         if Feed.query.filter_by(url = url).count():
             flask.flash("This feed already exists", "danger")
             return flask.redirect("/")
