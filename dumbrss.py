@@ -48,7 +48,6 @@ class Entry(db.Model):
     summary = db.Column(db.Text)
     author = db.Column(db.Text)
     date = db.Column(db.Integer)
-    starred = db.Column(db.Integer)
 
     def __init__(self, feed, link, title, summary, author, date):
         self.feed = feed
@@ -57,7 +56,6 @@ class Entry(db.Model):
         self.summary = summary
         self.author = author
         self.date = date
-        self.starred = 0
 
     def __repr__(self):
         return "<Entry {0} ({1})>".format(self.id, self.title)
@@ -137,8 +135,7 @@ def urlopen_mozilla(url):
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
 @app.route("/folder/<int:folder_id>")
-@app.route("/starred", defaults = { "starred": True })
-def feedview(folder_id = None, feed_id = None, starred = False):
+def feedview(folder_id = None, feed_id = None):
     entries = Entry.query.order_by(Entry.id.desc())
 
     if feed_id:
@@ -150,10 +147,6 @@ def feedview(folder_id = None, feed_id = None, starred = False):
         folder = Folder.query.get_or_404(folder_id)
         title = folder.name
         entries = entries.join("feed").filter_by(folder_id = folder_id)
-
-    elif starred:
-        title = "Starred"
-        entries = entries.filter_by(starred = 1)
 
     else:
         title = "Home"
@@ -173,24 +166,10 @@ def feedview(folder_id = None, feed_id = None, starred = False):
             entries = entries,
             folder_id = folder_id,
             feed_id = feed_id,
-            starred = starred,
             addfeedform = addfeedform,
             root_feeds = Feed.query.filter_by(folder_id = None),
             folders = Folder.query
     )
-
-@app.route("/setstarred")
-def setstarred():
-    entry = Entry.query.get_or_404(flask.request.args.get("id") or 0)
-    try:
-        f = int(flask.request.args.get("f"))
-    except ValueError:
-        flask.abort(400)
-    if not(f in [0, 1]):
-        flask.abort(400)
-    entry.starred = f
-    db.session.commit()
-    return ""
 
 @app.route("/addfeed", methods = [ "POST" ])
 def add_feed():
@@ -217,7 +196,7 @@ def add_feed():
         db.session.commit()
         newfeed.fetch()
         flask.flash("Feed added!", "success")
-        return flask.redirect(flask.url_for("feedview", feed_id = newfeed.id, starred = False))
+        return flask.redirect(flask.url_for("feedview", feed_id = newfeed.id))
     flash_errors(form)
     return flask.redirect("/")
 

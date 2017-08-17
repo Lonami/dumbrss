@@ -3,16 +3,10 @@
     <!-- Sidebar -->
     <div id="feedlist" class="navmenu navmenu-default navmenu-fixed-left offcanvas-xs">
         <ul class="nav navmenu-nav">
-            <li class="{{ "active" if not(starred or feed_id or folder_id) }}">
+            <li class="{{ "active" if not(feed_id or folder_id) }}">
                 <a href="/">
                     <span class="icon glyphicon glyphicon-th-list"></span>
                     All
-                </a>
-            </li>
-            <li class="{{ "active" if starred }}">
-                <a href="/starred">
-                    <span class="icon glyphicon glyphicon-star"></span>
-                    Starred
                 </a>
             </li>
             {% for feed in root_feeds.order_by("name") %}
@@ -67,17 +61,6 @@
             {% for entry in entries.items %}
                 <tr>
                     <td class="icon">
-                        <span id="star{{ entry.id }}"
-                            data-starred="{{ entry.starred }}"
-                            data-id="{{ entry.id }}"
-                            {% if entry.starred == 1 %}
-                                class="icon star glyphicon glyphicon-star"
-                            {% else %}
-                                class="icon star glyphicon glyphicon-star-empty"
-                            {% endif %}
-                            ></span>
-                    </td>
-                    <td class="icon">
                         <a href="/feed/{{ entry.feed.id }}">
                             <img
                                 class="feed-icon"
@@ -103,7 +86,7 @@
                 {% if page %}
                     {% if page != entries.page %}
                         <li><a href="{{ url_for("feedview", folder_id = folder_id,
-                            feed_id = feed_id, starred = starred, p = page) }}">{{ page }}</a></li>
+                            feed_id = feed_id, p = page) }}">{{ page }}</a></li>
                     {% else %}
                         <li class="active"><a>{{ page }}</a></li>
                     {% endif %}

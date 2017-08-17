@@ -5,7 +5,6 @@ A bloat-free, web-based RSS reader
 ## Features
 - Collects only links
 - Global, categorized and single feed views
-- "Star" stuff to read later
 - Minimal JavaScript usage
 
 ## To do
