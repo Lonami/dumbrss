@@ -84,6 +84,8 @@ class Feed(db.Model):
         d = feedparser.parse(self.url)
 
         for entry in d.entries:
+            if not hasattr(entry, "link"):
+                continue
             if self.entries.filter_by(link = entry.link).count() == 0:
                 if not(hasattr(entry, "author")):
                     entry.author = None
