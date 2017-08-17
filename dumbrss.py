@@ -116,7 +116,7 @@ class Folder(db.Model):
     def __repr__():
         return "<Folder {0} ({1})>".format(self.id, self.name)
 
-class AddFeedForm(flask_wtf.Form):
+class AddFeedForm(flask_wtf.FlaskForm):
     import wtforms.validators as v
     url = wtforms.StringField("URL",
             validators = [ v.URL(message = "Please enter a valid URL") ]
