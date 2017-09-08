@@ -2,6 +2,6 @@
 
 DIRNAME=`dirname "$0"`
 
-source $DIRNAME/venv/bin/activate
+[[ -d $DIRNAME/venv ]] && source $DIRNAME/venv/bin/activate
 $DIRNAME/dumbrss.py fetch
 
