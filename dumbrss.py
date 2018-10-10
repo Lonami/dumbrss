@@ -203,6 +203,13 @@ def add_feed():
     flash_errors(form)
     return flask.redirect("/")
 
+@app.route("/fetch")
+def api_fetch():
+    for feed in Feed.query.yield_per(1000):
+        feed.fetch(commit = False)
+    db.session.commit()
+    return "ok"
+
 @manager.option("-f", "--feed", dest = "id", default = None)
 def fetch(id):
     "Fetch feed updates"
