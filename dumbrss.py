@@ -77,7 +77,7 @@ class Feed(db.Model):
         self.name = name
         self.icon = icon
         self.link = link
-        self.url = url
+        self.url = clean_utm(urlopen_mozilla(url).geturl())
 
     def __repr__(self):
         return "<Feed {0} ({1})>".format(self.id, self.name)
@@ -134,6 +134,16 @@ def flash_errors(form):
 
 def urlopen_mozilla(url):
     return urlrequest.urlopen(urlrequest.Request(url, headers = { "User-Agent": "Mozilla/5.0" } ))
+
+def clean_utm(url):
+    parsed = urlparse.urlparse(url)
+    query = urlparse.parse_qs(parsed.query)
+
+    # Build the entire list before iterating, or we'd modify query while iterating
+    for x in [x for x in query if x.lower().startswith('utm_')]:
+        query.pop(x)
+
+    return urlparse.urlunparse(parsed._replace(query=urlparse.urlencode(query, doseq=True)))
 
 @app.route("/")
 @app.route("/feed/<int:feed_id>")
@@ -236,4 +246,3 @@ def initdb():
 
 if __name__ == "__main__":
     manager.run()
-
