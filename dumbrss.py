@@ -139,9 +139,9 @@ def clean_utm(url):
     parsed = urlparse.urlparse(url)
     query = urlparse.parse_qs(parsed.query)
 
-    # Build the entire list before iterating, or we'd modify query while iterating
-    for x in [x for x in query if x.lower().startswith('utm_')]:
-        query.pop(x)
+    for key in list(query):
+        if key.lower().startswith('utm_'):
+            query.pop(key)
 
     return urlparse.urlunparse(parsed._replace(query=urlparse.urlencode(query, doseq=True)))
 
